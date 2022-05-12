@@ -17,8 +17,50 @@
  *  ]
  */
 function createCompassPoints() {
-    throw new Error('Not implemented');
-    var sides = ['N','E','S','W'];  // use array of cardinal directions only!
+    const sides = ['N', 'E', 'S', 'W']; // use array of cardinal directions only!
+    const ret = [];
+    let curSide;
+    let nextSide;
+    let midSide;
+    let
+        abbreviation;
+    for (let side = 0; side < sides.length; side++) {
+        curSide = sides[side];
+        nextSide = sides[(side + 1) % sides.length];
+        midSide = (side % 2 === 0) ? curSide + nextSide : nextSide + curSide;
+        for (let compassPoint = 0; compassPoint < 8; compassPoint++) {
+            switch (compassPoint) {
+                case 0:
+                    abbreviation = curSide;
+                    break;
+                case 1:
+                    abbreviation = `${curSide}b${nextSide}`;
+                    break;
+                case 2:
+                    abbreviation = curSide + midSide;
+                    break;
+                case 3:
+                    abbreviation = `${midSide}b${curSide}`;
+                    break;
+                case 4:
+                    abbreviation = midSide;
+                    break;
+                case 5:
+                    abbreviation = `${midSide}b${nextSide}`;
+                    break;
+                case 6:
+                    abbreviation = nextSide + midSide;
+                    break;
+                case 7:
+                    abbreviation = `${nextSide}b${curSide}`;
+                    break;
+                default:
+                    break;
+            }
+            ret.push({abbreviation, azimuth: (side * 8 + compassPoint) * 11.25});
+        }
+    }
+    return ret;
 }
 
 
@@ -56,7 +98,24 @@ function createCompassPoints() {
  *   'nothing to do' => 'nothing to do'
  */
 function* expandBraces(str) {
-    throw new Error('Not implemented');
+    const toExpand = [str];
+    const appeared = [];
+    let matched;
+    let
+        replacementArr;
+    while (toExpand.length > 0) {
+        str = toExpand.pop();
+        matched = str.match(/{([^{}]*)}/);
+        if (matched !== null) {
+            replacementArr = matched[1].split(',');
+            for (const replacement of replacementArr) {
+                toExpand.push(str.replace(matched[0], replacement));
+            }
+        } else if (!appeared.includes(str)) {
+            appeared.push(str);
+            yield str;
+        }
+    }
 }
 
 
@@ -88,7 +147,39 @@ function* expandBraces(str) {
  *
  */
 function getZigZagMatrix(n) {
-    throw new Error('Not implemented');
+    const arr = [];
+    for (let i = 0; i < n; i++) {
+        arr[i] = [];
+    }
+
+    let i = 1;
+    let
+        j = 1;
+    for (let k = 0; k < n * n; k++) {
+        arr[i - 1][j - 1] = k;
+        if ((i + j) % 2 === 0) {
+            // чётные диагонали
+            if (j < n) {
+                j++;
+            } else {
+                i += 2;
+            }
+            if (i > 1) {
+                i--;
+            }
+        } else {
+            // нечётные диагонали
+            if (i < n) {
+                i++;
+            } else {
+                j += 2;
+            }
+            if (j > 1) {
+                j--;
+            }
+        }
+    }
+    return arr;
 }
 
 
@@ -113,7 +204,42 @@ function getZigZagMatrix(n) {
  *
  */
 function canDominoesMakeRow(dominoes) {
-    throw new Error('Not implemented');
+    for (let i = 0; i < (dominoes.length - 1); i++) {
+        if (dominoes[i][1] !== dominoes[i + 1][0]) {
+            // swap domino
+            const temp = dominoes[i + 1][0];
+            dominoes[i + 1][0] = dominoes[i + 1][1];
+            dominoes[i + 1][1] = temp;
+
+            if (dominoes[i][1] !== dominoes[i + 1][0]) {
+                // change domino
+                let isFound = false;
+                for (let j = i + 2; ((j < dominoes.length) && (!isFound)); j++) {
+                    if (dominoes[i][1] === dominoes[j][0]) {
+                        isFound = true;
+                        const tempDomino = dominoes[j];
+                        dominoes[j] = dominoes[i + 1];
+                        dominoes[i + 1] = tempDomino;
+                    } else if (dominoes[i][1] === dominoes[j][1]) {
+                        isFound = true;
+
+                        // swap temp domino
+                        const tempNumb = dominoes[j][1];
+                        dominoes[j][1] = dominoes[j][0];
+                        dominoes[j][0] = tempNumb;
+
+                        const tempDomino = dominoes[j];
+                        dominoes[j] = dominoes[i + 1];
+                        dominoes[i + 1] = tempDomino;
+                    }
+                }
+                if (!isFound) {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
 }
 
 
@@ -137,13 +263,36 @@ function canDominoesMakeRow(dominoes) {
  * [ 1, 2, 4, 5]          => '1,2,4,5'
  */
 function extractRanges(nums) {
-    throw new Error('Not implemented');
+    let min;
+    let
+        max;
+    const ret = Array();
+    while (nums.length > 0) {
+        min = nums.shift();
+        max = min;
+        while ((nums.length > 0) && (nums[0] - max === 1)) {
+            max = nums.shift();
+        }
+        switch (max - min) {
+            case 0:
+                ret.push(min.toString());
+                break;
+            case 1:
+                ret.push(min.toString());
+                ret.push(max.toString());
+                break;
+            default:
+                ret.push(`${min}-${max}`);
+                break;
+        }
+    }
+    return ret.toString();
 }
 
 module.exports = {
-    createCompassPoints : createCompassPoints,
-    expandBraces : expandBraces,
-    getZigZagMatrix : getZigZagMatrix,
-    canDominoesMakeRow : canDominoesMakeRow,
-    extractRanges : extractRanges
+    createCompassPoints: createCompassPoints,
+    expandBraces: expandBraces,
+    getZigZagMatrix: getZigZagMatrix,
+    canDominoesMakeRow: canDominoesMakeRow,
+    extractRanges: extractRanges
 };
